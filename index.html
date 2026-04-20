@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivid Particle Studio | Warm Edition</title>
+    <style>
+        :root {
+            --deep-coral: #FF6B6B;
+            --sunset-orange: #FF8E53;
+            --peach: #FFD3B6;
+            --rose-pink: #FF3E7F;
+            --soft-cream: #FFF9F5;
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--soft-cream); 
+            color: #4A4A4A; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, var(--sunset-orange), var(--rose-pink));
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .login-box {
+            background: white; padding: 40px; border-radius: 24px; 
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2); text-align: center;
+            width: 320px;
+        }
+        .login-box h1 { color: var(--rose-pink); margin-bottom: 25px; font-weight: 800; }
+
+        /* MAIN APP */
+        #main-app { display: none; width: 100%; max-width: 950px; text-align: center; padding: 20px; }
+
+        .app-header { margin-bottom: 25px; }
+        .app-header h1 { 
+            background: linear-gradient(to right, var(--rose-pink), var(--sunset-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3em; margin: 0; font-weight: 900;
+        }
+
+        /* VIDEO VIEWING FRAME */
+        #video-frame {
+            width: 800px; height: 450px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            border: 10px solid var(--peach);
+            box-shadow: 0 25px 50px rgba(255, 142, 83, 0.15);
+            margin: 0 auto 25px auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .controls-row {
+            display: flex; justify-content: center; gap: 20px; align-items: center;
+            background: white; padding: 25px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        input[type="file"] { display: none; }
+        .btn {
+            padding: 14px 30px; border-radius: 50px; border: none; font-weight: bold;
+            cursor: pointer; transition: all 0.3s ease; color: white;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-upload { background: var(--sunset-orange); box-shadow: 0 4px 15px rgba(255, 142, 83, 0.3); }
+        .btn-download { background: var(--rose-pink); display: none; box-shadow: 0 4px 15px rgba(255, 62, 127, 0.3); }
+        .btn-login { background: var(--deep-coral); width: 100%; margin-top: 15px; }
+        
+        .btn:hover { transform: translateY(-3px); filter: brightness(1.05); }
+        .btn:active { transform: translateY(0); }
+
+        #status { margin-top: 12px; font-weight: 600; color: var(--deep-coral); letter-spacing: 1px; }
+
+        canvas { width: 100% !important; height: 100% !important; }
+
+        input[type="email"], input[type="password"] {
+            width: 100%; padding: 12px; margin: 10px 0; 
+            border: 2px solid var(--peach); border-radius: 12px;
+            outline: none; transition: border-color 0.3s;
+        }
+        input:focus { border-color: var(--sunset-orange); }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>Studio Login</h1>
+            <input type="email" id="email" placeholder="">
+            <input type="password" id="pw" placeholder="">
+            <button class="btn btn-login" onclick="checkLogin()">Enter Studio</button>
+            <p id="login-err" style="color:var(--rose-pink); font-size: 0.85em; margin-top:15px; font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <div id="main-app">
+        <div class="app-header">
+            <h1>Particle Studio</h1>
+            <div id="status">INITIALIZING SYSTEM...</div>
+        </div>
+
+        <div id="video-frame">
+            </div>
+
+        <div class="controls-row">
+            <label for="upload" class="btn btn-upload">Upload Video</label>
+            <input type="file" id="upload" accept="video/*">
+            
+            <button id="downloadBtn" class="btn btn-download">Export WebM</button>
+        </div>
+
+        <video id="video" width="640" height="480" crossorigin="anonymous" loop style="display:none"></video>
+        <canvas id="processingCanvas" width="640" height="480" style="display:none"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // AUTHENTICATION LOGIC
+        function checkLogin() {
+            const email = document.getElementById('email').value;
+            const pw = document.getElementById('pw').value;
+            if(email === "gigi@gmail.com" && pw === "gigi") {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                initThreeJS();
+                loadAI();
+            } else { 
+                document.getElementById('login-err').innerText = "Access Denied: Invalid Credentials"; 
+            }
+        }
+
+        const video = document.getElementById('video');
+        const upload = document.getElementById('upload');
+        const status = document.getElementById('status');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const processingCanvas = document.getElementById('processingCanvas');
+        const ctx = processingCanvas.getContext('2d');
+
+        let net, scene, camera, renderer, particles, mediaRecorder, recordedChunks = [];
+
+        // 3D SCENE SETUP
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, 800 / 450, 1, 2000);
+            camera.position.z = 550;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(800, 450);
+            renderer.setClearColor(0x1a1a1a);
+            document.getElementById('video-frame').appendChild(renderer.domElement);
+
+            const gap = 5; 
+            const particleCount = Math.floor(640/gap) * Math.floor(480/gap);
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(particleCount * 3), 3));
+
+            const material = new THREE.PointsMaterial({ size: 3.2, vertexColors: true, transparent: true, opacity: 0.95 });
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        async function loadAI() {
+            net = await bodyPix.load();
+            status.innerText = "SYSTEM READY";
+        }
+
+        upload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            video.src = URL.createObjectURL(file);
+            video.onloadedmetadata = () => {
+                video.muted = false; // Audio enabled
+                video.play();
+                status.innerText = "SCANNING VOLUMETRIC DATA...";
+                downloadBtn.style.display = "block";
+                animate();
+                startRecording();
+            };
+        });
+
+        // ANIMATION LOOP
+        async function animate() {
+            if (video.paused || video.ended) return;
+
+            ctx.drawImage(video, 0, 0, 640, 480);
+            const segmentation = await net.segmentPerson(processingCanvas);
+            const imageData = ctx.getImageData(0, 0, 640, 480).data;
+            
+            const pos = particles.geometry.attributes.position.array;
+            const col = particles.geometry.attributes.color.array;
+
+            let i = 0;
+            const gap = 5;
+            for (let y = 0; y < 480; y += gap) {
+                for (let x = 0; x < 640; x += gap) {
+                    const n = (y * 640 + x);
+                    const isPerson = segmentation.data[n] === 1;
+                    const dIdx = n * 4;
+                    const r = imageData[dIdx]/255, g = imageData[dIdx+1]/255, b = imageData[dIdx+2]/255;
+                    const lum = (0.2126*r + 0.7152*g + 0.0722*b);
+
+                    pos[i*3] = (x - 320) * 1.25;
+                    pos[i*3+1] = (-y + 240) * 1.25;
+                    pos[i*3+2] = isPerson ? 60 + (lum * 60) : -60;
+
+                    if (isPerson) {
+                        // VIVID WARM PERSON COLORS
+                        col[i*3] = Math.min(1, r * 2.0); // Boost reds
+                        col[i*3+1] = Math.min(1, g * 1.4); 
+                        col[i*3+2] = Math.min(1, b * 1.1);
+                    } else {
+                        // SUBDUED BACKGROUND
+                        col[i*3] = r * 0.3; col[i*3+1] = g * 0.3; col[i*3+2] = b * 0.4;
+                    }
+                    i++;
+                }
+            }
+            particles.geometry.attributes.position.needsUpdate = true;
+            particles.geometry.attributes.color.needsUpdate = true;
+            
+            // Subtle sway for depth
+            particles.rotation.y = Math.sin(Date.now() * 0.001) * 0.05;
+            
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        // VIDEO EXPORT LOGIC
+        function startRecording() {
+            recordedChunks = [];
+            const stream = renderer.domElement.captureStream(30);
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+            mediaRecorder.onstop = saveVideo;
+            mediaRecorder.start();
+        }
+
+        downloadBtn.onclick = () => {
+            mediaRecorder.stop();
+            status.innerText = "EXPORT COMPLETE!";
+        };
+
+        function saveVideo() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vivid-particle-export.webm';
+            a.click();
+        }
+    </script>
+</body>
+</html>
