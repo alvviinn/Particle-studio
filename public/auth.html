@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in — Pollen</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <div class="auth">
+    <aside class="auth-art">
+      <canvas id="art" width="960" height="1080" aria-hidden="true"></canvas>
+      <a class="brand" href="/"><span id="logo"></span><span>Pollen</span></a>
+      <blockquote>Everything on screen is made of light, and light can be rearranged.</blockquote>
+    </aside>
+
+    <main class="auth-main">
+      <div class="auth-box">
+
+        <section id="v-login">
+          <h1>Welcome back</h1>
+          <p class="lead">Sign in to pick up where you left off.</p>
+          <form id="f-login" novalidate>
+            <div class="field"><label for="l-email">Email</label>
+              <input class="input" id="l-email" type="email" autocomplete="username" required></div>
+            <div class="field"><label for="l-pw">Password</label>
+              <div class="pw"><input class="input" id="l-pw" type="password" autocomplete="current-password" required>
+              <button type="button" data-toggle="l-pw">Show</button></div></div>
+            <p class="msg err" id="m-login" role="alert"></p>
+            <button class="btn btn-primary" type="submit">Sign in</button>
+          </form>
+          <p class="switch">New here? <button type="button" data-go="register">Create an account</button></p>
+        </section>
+
+        <section id="v-register" hidden>
+          <h1>Make an account</h1>
+          <p class="lead">Save your renders and keep them safe with two-factor sign-in.</p>
+          <form id="f-register" novalidate>
+            <div class="field"><label for="r-name">Your name</label>
+              <input class="input" id="r-name" autocomplete="name" maxlength="60" required></div>
+            <div class="field"><label for="r-email">Email</label>
+              <input class="input" id="r-email" type="email" autocomplete="username" required></div>
+            <div class="field"><label for="r-pw">Password</label>
+              <div class="pw"><input class="input" id="r-pw" type="password" autocomplete="new-password" required>
+              <button type="button" data-toggle="r-pw">Show</button></div>
+              <div class="meter" id="meter" data-s="0"><i></i><i></i><i></i><i></i></div>
+              <span class="hint" id="pw-hint">At least 10 characters. A few random words work well.</span></div>
+            <p class="msg err" id="m-register" role="alert"></p>
+            <button class="btn btn-primary" type="submit">Create account</button>
+          </form>
+          <p class="switch">Already registered? <button type="button" data-go="login">Sign in</button></p>
+        </section>
+
+        <section id="v-2fa" hidden>
+          <button class="back" type="button" data-go="login">&larr; Back</button>
+          <div class="shield"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h1>Check your phone</h1>
+          <p class="lead" id="tf-lead">Enter the 6-digit code from your authenticator app.</p>
+          <form id="f-2fa" novalidate>
+            <div class="field"><label for="t-code" id="t-label">Authentication code</label>
+              <input class="input code-input" id="t-code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" required></div>
+            <p class="msg err" id="m-2fa" role="alert"></p>
+            <button class="btn btn-primary" type="submit">Verify and continue</button>
+          </form>
+          <p class="switch"><button type="button" id="toggle-recovery">Use a recovery code instead</button></p>
+        </section>
+
+      </div>
+    </main>
+  </div>
+  <script type="module" src="/js/auth.js"></script>
+</body>
+</html>

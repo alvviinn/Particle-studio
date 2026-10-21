@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio — Pollen</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="/css/studio.css">
+</head>
+<body>
+  <header id="nav"></header>
+  <main class="studio">
+
+    <section class="left">
+      <div class="frame" id="frame">
+        <canvas id="view" width="1920" height="1080"></canvas>
+        <div class="drop" id="drop" hidden>
+          <div><strong>Drop a video here</strong><span>or use the button below</span></div>
+        </div>
+        <div class="hud" id="hud"><span id="count"></span><span id="fps"></span></div>
+        <div class="rendering" id="rendering" hidden>
+          <div class="rbox">
+            <strong id="r-title">Rendering</strong>
+            <div class="bar"><i id="r-bar"></i></div>
+            <span class="small" id="r-sub">Keep this tab open and visible.</span>
+            <button class="btn btn-ghost btn-sm" id="r-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button class="icon-btn" id="play" aria-label="Play or pause"></button>
+        <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position">
+        <span class="time" id="time">0:00</span>
+        <button class="icon-btn" id="mute" aria-label="Mute or unmute"></button>
+      </div>
+
+      <div class="source">
+        <label class="btn btn-dark" for="file">Choose a video</label>
+        <input type="file" id="file" accept="video/*" class="sr">
+        <button class="btn btn-ghost" id="demo-btn">Use the sample clip</button>
+        <span class="muted small" id="src-name"></span>
+      </div>
+
+      <div class="card exportbox">
+        <div class="row">
+          <div><h2>Render</h2>
+          <p class="muted small" id="exp-note">Records the whole clip with its sound, exactly as the preview looks.</p></div>
+          <div class="exp-actions">
+            <button class="btn btn-ghost btn-sm" id="still">Save frame (PNG)</button>
+            <button class="btn btn-primary" id="export">Render video</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="save-lib" checked> Also keep a copy in My videos</label>
+        <div id="result" hidden>
+          <video id="r-video" controls playsinline></video>
+          <div class="row">
+            <div><strong id="r-name"></strong><p class="muted small" id="r-meta"></p><p class="msg" id="r-save"></p></div>
+            <a class="btn btn-primary" id="r-dl" download>Download video</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel">
+      <section>
+        <h3>Look</h3>
+        <div class="tiles" id="tiles" role="radiogroup" aria-label="Look"></div>
+        <p class="muted small" id="form-blurb"></p>
+      </section>
+
+      <section>
+        <h3>Particles</h3>
+        <div id="sl-particles"></div>
+        <p class="hint" id="total"></p>
+      </section>
+
+      <section>
+        <h3>Colour</h3>
+        <div class="seg" id="seg-color" role="radiogroup" aria-label="Colour mode"></div>
+        <div class="swatches" id="palettes" role="radiogroup" aria-label="Palette"></div>
+        <div id="sl-colour"></div>
+        <p class="label">Backdrop</p>
+        <div class="swatches" id="backdrops" role="radiogroup" aria-label="Backdrop"></div>
+      </section>
+
+      <section>
+        <h3>Follow the subject</h3>
+        <div class="seg" id="seg-subject" role="radiogroup" aria-label="Subject detection"></div>
+        <p class="hint" id="subject-hint"></p>
+        <div id="sl-subject"></div>
+      </section>
+
+      <section>
+        <h3>Camera &amp; output</h3>
+        <div id="sl-camera"></div>
+        <div class="two">
+          <div class="field"><label for="res">Quality</label>
+            <select class="input" id="res"><option value="720">720p</option><option value="1080" selected>1080p</option><option value="1440">1440p</option></select></div>
+          <div class="field"><label for="fps-sel">Frame rate</label>
+            <select class="input" id="fps-sel"><option value="30" selected>30 fps</option><option value="60">60 fps</option></select></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <div class="toasts" aria-live="polite"></div>
+  <script type="module" src="/js/studio.js"></script>
+</body>
+</html>

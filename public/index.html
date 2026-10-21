@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pollen — video rebuilt from particles</title>
+  <meta name="description" content="Upload a video and rebuild it out of dense particles, drifting gas, bubbles or colourful polygons. Download the result.">
+  <meta name="theme-color" content="#fff6ea">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header id="nav"></header>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <span class="eyebrow">Video, taken apart</span>
+          <h1>Turn any clip into a swarm of <em>living particles.</em></h1>
+          <p class="lead">Drop in a video and it comes apart into hundreds of thousands of glowing grains, drifting gas, soap bubbles or tiny faceted shapes. The people and objects keep their outline. Then you download the result.</p>
+          <div class="cta">
+            <a class="btn btn-primary" href="/auth?mode=register">Start making videos</a>
+            <a class="btn btn-ghost" href="#forms">See the looks</a>
+          </div>
+        </div>
+        <div class="stage">
+          <canvas id="hero" width="1280" height="720" aria-label="Live preview of the particle effect"></canvas>
+          <div class="chips" id="chips" role="group" aria-label="Choose a look"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="forms">
+      <div class="wrap">
+        <span class="eyebrow">Eight looks</span>
+        <h2>One video, a different material each time.</h2>
+        <p class="sub">Every look is a full recipe: the shape of each piece, how it moves, how it glows. Swap between them and tune the rest with sliders. These previews are rendered live from the same engine you will use.</p>
+        <div class="forms-grid" id="forms-grid"></div>
+      </div>
+    </section>
+
+    <section class="section tint">
+      <div class="wrap">
+        <span class="eyebrow">How it goes</span>
+        <h2>Three steps, no timeline.</h2>
+        <div class="steps">
+          <div class="step"><h3>Bring a video</h3><p>Any clip your browser can play. It never leaves your machine while you work, so big files are fine.</p></div>
+          <div class="step"><h3>Pick a material</h3><p>Choose gas, bubbles, polygons or grains, set the density and colours, and tell it to follow the person or object in frame.</p></div>
+          <div class="step"><h3>Render and keep it</h3><p>Record the whole thing to MP4 or WebM with the original sound, download it, and find it again in your library.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <span class="eyebrow">Built properly</span>
+        <h2>Dense where it counts.</h2>
+        <div class="feat">
+          <div><h3>Up to two million pieces</h3><p>Particles are placed and shaded on the graphics card, so you can push the density far past what a canvas drawing loop could manage.</p></div>
+          <div><h3>Real depth</h3><p>Brightness and subject position push particles forward and back in 3D, with slow camera drift and pointer parallax.</p></div>
+          <div><h3>Follows the subject</h3><p>Detect people or motion so the background thins out and the particles gather around what matters.</p></div>
+          <div><h3>Palettes that match</h3><p>Keep the original colours, or map the picture to Sunset, Candy, Ocean, Neon, Ember and more.</p></div>
+          <div><h3>Exports with sound</h3><p>Up to 1440p, recorded straight from the render with the clip’s audio. MP4 where your browser supports it.</p></div>
+          <div><h3>Your own account</h3><p>Password sign-in, two-factor codes from any authenticator app, recovery codes, and a private library of your renders.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section flush">
+      <div class="wrap">
+        <div class="band">
+          <h2>Make your first one in about two minutes.</h2>
+          <a class="btn btn-primary" href="/auth?mode=register">Create a free account</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer id="footer"></footer>
+  <script type="module" src="/js/landing.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account — Pollen</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header id="nav"></header>
+  <main class="page"><div class="wrap">
+    <h1>Your account</h1>
+    <p class="lead" id="who"></p>
+
+    <div class="stack">
+      <section class="card">
+        <h2>Profile</h2>
+        <p class="muted small" id="email-line" style="margin-bottom:16px"></p>
+        <form id="f-profile" class="row" novalidate>
+          <div class="field" style="flex:1;margin:0;min-width:220px"><label class="sr" for="name">Name</label>
+            <input class="input" id="name" maxlength="60" autocomplete="name"></div>
+          <button class="btn btn-dark btn-sm" type="submit">Save name</button>
+        </form>
+        <p class="msg" id="m-profile"></p>
+      </section>
+
+      <section class="card" id="sec-2fa">
+        <div class="row">
+          <div><h2>Two-factor sign-in</h2>
+          <p class="muted small">A 6-digit code from an authenticator app, asked for after your password.</p></div>
+          <span class="pill" id="tf-pill">Off</span>
+        </div>
+
+        <div id="tf-off" style="margin-top:18px" hidden>
+          <button class="btn btn-primary" id="tf-start">Set up two-factor</button>
+        </div>
+
+        <div id="tf-setup" hidden>
+          <ol class="small" style="padding-left:1.2em;margin:18px 0 0;color:var(--ink-2)">
+            <li>Open an authenticator app (Google Authenticator, Authy, 1Password, Microsoft Authenticator&hellip;).</li>
+            <li>Scan this code, or type the key in by hand.</li>
+            <li>Enter the 6-digit code it shows to finish.</li>
+          </ol>
+          <div class="qr">
+            <img id="qr" alt="QR code for your authenticator app" width="240" height="240">
+            <div>
+              <p class="label" style="margin-bottom:6px">Can&rsquo;t scan? Enter this key</p>
+              <p class="secret" id="secret"></p>
+            </div>
+          </div>
+          <form id="f-enable" class="row" novalidate>
+            <div class="field" style="margin:0;flex:1;min-width:200px"><label class="sr" for="en-code">Code</label>
+              <input class="input" id="en-code" inputmode="numeric" maxlength="7" placeholder="6-digit code" autocomplete="off"></div>
+            <button class="btn btn-primary btn-sm" type="submit">Turn on</button>
+          </form>
+        </div>
+
+        <div id="tf-codes" hidden>
+          <h3 style="font-size:1.2rem;margin-top:22px">Save your recovery codes</h3>
+          <p class="muted small">If you lose your phone, each of these signs you in once. They are shown only now.</p>
+          <div class="codes" id="codes"></div>
+          <div class="row" style="justify-content:flex-start">
+            <button class="btn btn-ghost btn-sm" id="codes-copy">Copy</button>
+            <button class="btn btn-ghost btn-sm" id="codes-dl">Download .txt</button>
+            <button class="btn btn-dark btn-sm" id="codes-done">I&rsquo;ve saved them</button>
+          </div>
+        </div>
+
+        <div id="tf-on" hidden style="margin-top:18px">
+          <p class="small muted" id="rec-left"></p>
+          <form id="f-disable" style="margin-top:14px" novalidate>
+            <p class="label" style="margin-bottom:10px">Turn it off</p>
+            <div class="row" style="align-items:flex-end">
+              <div class="field" style="margin:0;flex:1;min-width:160px"><label for="d-pw">Password</label><input class="input" id="d-pw" type="password" autocomplete="current-password"></div>
+              <div class="field" style="margin:0;flex:1;min-width:160px"><label for="d-code">Current code</label><input class="input" id="d-code" inputmode="numeric" maxlength="7" autocomplete="off"></div>
+              <button class="btn btn-danger btn-sm" type="submit">Turn off</button>
+            </div>
+          </form>
+        </div>
+        <p class="msg" id="m-2fa" style="margin-top:12px"></p>
+      </section>
+
+      <section class="card">
+        <h2>Password</h2>
+        <form id="f-pw" novalidate style="margin-top:16px">
+          <div class="field"><label for="p-cur">Current password</label><input class="input" id="p-cur" type="password" autocomplete="current-password"></div>
+          <div class="field"><label for="p-new">New password</label><input class="input" id="p-new" type="password" autocomplete="new-password"><span class="hint">At least 10 characters. Other devices are signed out when you change it.</span></div>
+          <p class="msg" id="m-pw"></p>
+          <button class="btn btn-dark btn-sm" type="submit">Change password</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="row"><h2>Signed-in devices</h2><button class="btn btn-ghost btn-sm" id="revoke">Sign out the others</button></div>
+        <div id="sessions" style="margin-top:12px"></div>
+      </section>
+
+      <section class="card">
+        <h2>Delete account</h2>
+        <p class="muted small" style="margin-bottom:14px">Removes your account and every saved video. This can&rsquo;t be undone.</p>
+        <form id="f-del" class="row" novalidate>
+          <div class="field" style="margin:0;flex:1;min-width:200px"><label class="sr" for="del-pw">Password</label><input class="input" id="del-pw" type="password" placeholder="Confirm with your password" autocomplete="current-password"></div>
+          <button class="btn btn-danger btn-sm" type="submit">Delete everything</button>
+        </form>
+        <p class="msg" id="m-del"></p>
+      </section>
+    </div>
+  </div></main>
+  <footer id="footer"></footer>
+  <script type="module" src="/js/account.js"></script>
+</body>
+</html>
