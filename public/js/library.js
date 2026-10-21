@@ -1,10 +1,10 @@
-import { api, fmtBytes, fmtDate, fmtTime } from './api.js';
+import { api, exportFile, fmtBytes, fmtDate, fmtTime } from './api.js';
 import { mountNav, footer, toast, escapeHtml } from './nav.js';
 import { FORMS } from './forms.js';
 
 const user = await mountNav('library');
 footer();
-if (!user) location.href = '/auth?next=/library';
+if (!user) location.href = 'auth.html?next=library';
 
 const grid = document.getElementById('grid');
 
@@ -21,16 +21,21 @@ async function load() {
     el.className = 'vid';
     const meta = [FORMS[v.form]?.label, v.width && `${v.width}×${v.height}`, v.duration && fmtTime(v.duration), fmtBytes(v.size), fmtDate(v.createdAt)].filter(Boolean).join(' · ');
     el.innerHTML = `
-      <video controls preload="metadata" playsinline src="/api/exports/${v.id}/file"></video>
+      <video controls preload="metadata" playsinline></video>
       <div class="meta">
         <h3>${escapeHtml(v.title)}</h3>
         <p class="muted small">${escapeHtml(meta)}</p>
         <div class="acts">
-          <a class="btn btn-primary btn-sm" href="/api/exports/${v.id}/file?download=1" download>Download</a>
+          <a class="btn btn-primary btn-sm" data-act="download" download>Download</a>
           <button class="btn btn-ghost btn-sm" data-act="rename">Rename</button>
           <button class="btn btn-danger btn-sm" data-act="delete">Delete</button>
         </div>
       </div>`;
+    exportFile(v.id, { download: true }).then(({ url, filename }) => {
+      const dl = el.querySelector('[data-act=download]');
+      dl.href = url; if (filename) dl.download = filename;
+      el.querySelector('video').src = url.replace('?download=1', '');
+    }).catch((e) => toast(e.message, 'err'));
     el.querySelector('[data-act=rename]').addEventListener('click', async () => {
       const title = prompt('Name this video', v.title);
       if (!title?.trim()) return;

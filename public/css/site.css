@@ -224,3 +224,8 @@ a:hover { color: var(--rose); }
 .section.flush { padding-top: 0; }
 .gap { margin: 10px 0 24px; }
 .form-card img { height: auto; }
+
+.local-bar { background: var(--plum); color: var(--cream); font-size: .88rem; padding: 9px 20px; display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.local-bar button { background: rgba(255,255,255,.14); color: #fff; border: 0; border-radius: 999px; padding: 5px 12px; font: 600 .8rem var(--body); cursor: pointer; }
+.local-bar button:hover { background: rgba(255,255,255,.26); }
+.local-note { margin-top: 18px; text-align: center; }

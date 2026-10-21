@@ -8,7 +8,7 @@ import { renderFormThumbs } from './thumbs.js';
 
 const $ = (id) => document.getElementById(id);
 const user = await mountNav('studio');
-if (!user) location.href = '/auth?next=/studio';
+if (!user) location.href = 'auth.html?next=studio';
 
 const canvas = $('view');
 const video = document.createElement('video');
@@ -407,7 +407,7 @@ async function showResult(blob, type, dur) {
   const q = new URLSearchParams({ title, form: state.cfg.form, w: canvas.width, h: canvas.height, d: dur.toFixed(2) });
   try {
     await api('/exports?' + q, { method: 'POST', raw: blob, headers: { 'Content-Type': type } });
-    msg.innerHTML = 'Saved. Find it in <a href="/library">My videos</a>.'; msg.className = 'msg ok';
+    msg.innerHTML = 'Saved. Find it in <a href="library.html">My videos</a>.'; msg.className = 'msg ok';
   } catch (e) {
     msg.textContent = `Couldn’t save a copy: ${e.message} You can still download it.`; msg.className = 'msg err';
   }

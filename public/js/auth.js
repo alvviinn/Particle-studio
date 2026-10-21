@@ -1,5 +1,5 @@
-import { api } from './api.js';
-import { LOGO } from './nav.js';
+import { api, isLocal } from './api.js';
+import { LOGO, getUser } from './nav.js';
 import { ParticleEngine } from './engine.js';
 import { FORMS } from './forms.js';
 import { createDemoSource } from './demo.js';
@@ -8,9 +8,18 @@ document.getElementById('logo').innerHTML = LOGO;
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const next = (() => {
-  const n = params.get('next') || '/studio';
-  return /^\/[a-z]*$/i.test(n) ? n : '/studio'; // same-site paths only
+  const n = (params.get('next') || 'studio').replace(/^\//, '').replace(/\.html$/, '');
+  return ['studio', 'library', 'account'].includes(n) ? `${n}.html` : 'studio.html'; // same-site pages only
 })();
+
+getUser().then((u) => { if (u) location.replace(next); });
+isLocal().then((local) => {
+  if (!local) return;
+  const note = document.createElement('p');
+  note.className = 'hint local-note';
+  note.textContent = 'This is the static version of Pollen: accounts and saved videos are stored in this browser only, on this device.';
+  document.querySelector('.auth-box').append(note);
+});
 
 /* ---- decorative particle backdrop ---- */
 try {

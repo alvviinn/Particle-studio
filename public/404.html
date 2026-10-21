@@ -1,5 +1,15 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found — Pollen</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/css/site.css"></head>
-<body><header id="nav"></header>
-<main class="err-page"><div><h1>404</h1><p class="lead muted gap">That page drifted away.</p><a class="btn btn-primary" href="/">Back to the start</a></div></main>
-<script type="module" src="/js/page.js"></script></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found — Pollen</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; text-align: center; background: #fff6ea; color: #2a1620; font: 400 1.1rem/1.5 'Trebuchet MS', system-ui, sans-serif; }
+  h1 { font: 800 clamp(4rem, 14vw, 8rem)/1 Georgia, serif; margin: 0; background: linear-gradient(120deg, #f7a81b, #ee4e2c 52%, #e23e6b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  p { color: #8a6d68; margin: 8px 0 26px; }
+  a { display: inline-block; background: linear-gradient(120deg, #f7a81b, #ee4e2c 52%, #e23e6b); color: #fff; font-weight: 700; text-decoration: none; padding: 14px 26px; border-radius: 999px; }
+</style></head>
+<body><div><h1>404</h1><p>That page drifted away.</p><a id="home" href="./">Back to the start</a></div>
+<script>
+  // GitHub project pages live under /<repo>/, so work out the site root from the URL.
+  var seg = location.pathname.split('/')[1];
+  if (/\.github\.io$/.test(location.hostname) && seg) document.getElementById('home').href = '/' + seg + '/';
+  else document.getElementById('home').href = '/';
+</script></body></html>

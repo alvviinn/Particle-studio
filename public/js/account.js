@@ -4,7 +4,7 @@ import { mountNav, footer, toast, escapeHtml } from './nav.js';
 const $ = (id) => document.getElementById(id);
 const user = await mountNav('account');
 footer();
-if (!user) location.href = '/auth?next=/account';
+if (!user) location.href = 'auth.html?next=account';
 
 const say = (id, text, ok = false) => { const m = $(id); m.textContent = text; m.className = 'msg ' + (text ? (ok ? 'ok' : 'err') : ''); };
 const post = (path, body, method = 'POST') => api(path, { method, body });
@@ -104,6 +104,6 @@ $('revoke').addEventListener('click', async () => { await post('/account/session
 $('f-del').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!confirm('Delete your account and all saved videos for good?')) return;
-  try { await post('/account/delete', { password: $('del-pw').value }); location.href = '/'; }
+  try { await post('/account/delete', { password: $('del-pw').value }); location.href = 'index.html'; }
   catch (err) { say('m-del', err.message); }
 });

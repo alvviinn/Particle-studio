@@ -2,9 +2,15 @@
 
 Turn video into dense, living particle footage. Pick a look (particles, gas, polygons, circles, bubbles, stardust, embers, pixels), tune it, render it, download it.
 
-## Run it
+## Two ways to host it
 
-Needs Node 22.13 or newer.
+**1. GitHub Pages (no server).** The whole site is the `public/` folder, and `.github/workflows/pages.yml` publishes it on every push to `main`. In the repo go to *Settings > Pages > Build and deployment > Source* and choose **GitHub Actions**. The site then lives at `https://<user>.github.io/<repo>/`.
+
+With no server behind it, the app detects that and runs a browser-only backend (`public/js/localapi.js`): accounts, password hashing (PBKDF2), TOTP 2FA, recovery codes and the saved-video library are all stored in the visitor's own browser (IndexedDB). That means:
+- accounts and saved videos stay on that one device and browser; they don't sync, and clearing site data erases them
+- it is a convenience gate, not hardened security, since everything runs on the visitor's machine
+
+**2. Node server (real accounts).** Same front end, but accounts, 2FA and videos are stored on the server and work from any device. Needs Node 22.13 or newer.
 
 ```
 npm install
