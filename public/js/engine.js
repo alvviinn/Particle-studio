@@ -91,6 +91,14 @@ vec3 palette(float t) {
   return mix(uPal[i], uPal[i + 1], t - float(i));
 }
 
+// flat, saturated swatches with short blends between them
+vec3 palettePop(float t) {
+  t = clamp(t, 0.0, 1.0) * 4.0;
+  int i = int(min(floor(t), 3.0));
+  float f = smoothstep(0.38, 0.62, t - float(i));
+  return mix(uPal[i], uPal[i + 1], f);
+}
+
 void main() {
   int id = gl_VertexID;
   uint uid = uint(id);
@@ -186,10 +194,14 @@ void main() {
       hue = (mx == c.r ? mod((c.g - c.b) / d, 6.0) : (mx == c.g ? (c.b - c.r) / d + 2.0 : (c.r - c.g) / d + 4.0)) / 6.0;
     }
     float base = mix(lum * 1.25 + 0.15, hue, smoothstep(0.12, 0.45, sat));
-    float field = snoise(vec3(cuv * vec2(uAspect, 1.0) * 3.0, t * 0.05)) * 0.09;
-    float x = base + field + (h7 - 0.5) * 0.12 + t * 0.012;
-    col = palette(1.0 - abs(2.0 * fract(x) - 1.0));
-    col *= mix(0.4, 1.15, smoothstep(0.0, 0.65, lum));
+    vec2 fp = cuv * vec2(uAspect, 1.0);
+    float patch1 = snoise(vec3(fp * 4.5, t * 0.07)) * 0.38;          // large colour patches
+    float patch2 = snoise(vec3(fp * 13.0 + 7.0, t * 0.14)) * 0.14;   // confetti-sized flecks
+    float pick = (h7 - 0.5) * 0.45;                                   // each piece chooses a neighbouring colour
+    float x = base * 2.4 + patch1 + patch2 + pick + t * 0.03;
+    col = palettePop(1.0 - abs(2.0 * fract(x) - 1.0));
+    col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.3);   // keep it vivid
+    col *= mix(0.3, 1.3, smoothstep(0.05, 0.95, lum));
   }
   col *= uBright;
 

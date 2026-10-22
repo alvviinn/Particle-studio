@@ -27,16 +27,16 @@ export const FORMS = {
   particles: {
     label: 'Particles',
     blurb: 'Dense, lit grains with real depth.',
-    shape: 'disc', blend: 'alpha', alpha: 1, shade: 0.7, jitter: 0.9,
+    shape: 'disc', blend: 'alpha', alpha: 1, shade: 0.25, jitter: 0.9,
     life: 0, sizeLuma: 0, sizeVar: 0.25, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0,
-    defaults: { density: 150, layers: 2, size: 0.95, depth: 0.55, motion: 0.3, speed: 1, color: 'artistic', palette: 'aurora', sat: 1.2, bright: 1.2, bgKeep: 0.4, cutoff: 0.02, abstract: 0.55 },
+    defaults: { density: 150, layers: 2, size: 0.95, depth: 0.55, motion: 0.3, speed: 1, color: 'artistic', palette: 'aurora', sat: 1.2, bright: 1.5, bgKeep: 0.4, cutoff: 0.02, abstract: 0.55 },
   },
   gas: {
     label: 'Gas',
     blurb: 'Soft colour clouds that drift off the shapes in the frame.',
-    shape: 'gas', blend: 'add', alpha: 0.15, shade: 0, jitter: 1,
+    shape: 'gas', blend: 'add', alpha: 0.13, shade: 0, jitter: 1,
     life: 1, sizeLuma: 0.2, sizeVar: 0.8, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0.4,
-    defaults: { density: 90, layers: 2, size: 5.5, depth: 0.3, motion: 1.1, speed: 0.8, color: 'artistic', palette: 'aurora', sat: 1.45, bright: 1.35, bgKeep: 0.15, cutoff: 0.03, abstract: 0.6 },
+    defaults: { density: 90, layers: 2, size: 4.5, depth: 0.3, motion: 0.75, speed: 0.8, color: 'artistic', palette: 'aurora', sat: 1.45, bright: 1.25, bgKeep: 0.15, cutoff: 0.03, abstract: 0.6 },
   },
   polygons: {
     label: 'Polygons',
