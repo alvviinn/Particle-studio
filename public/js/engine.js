@@ -21,6 +21,7 @@ uniform float uRefDist;
 uniform float uMaxPoint;
 
 uniform float uSize, uDepth, uMotion, uSpeed, uSat, uBright, uBgKeep, uCutoff, uAlpha;
+uniform float uAbstract;
 uniform float uJitter, uLife, uSizeLuma, uSizeVar, uSpin, uRandRot, uSides, uTwinkle, uRise;
 uniform int uColorMode;
 uniform vec3 uPal[5];
@@ -104,6 +105,7 @@ void main() {
   float h5 = rnd(uid * 11u + 5u);
   float h6 = rnd(uid * 11u + 6u);
   float h7 = rnd(uid * 11u + 7u);
+  float h8 = rnd(uid * 11u + 8u);
 
   vec2 g = vec2(float(cell % cols), float(cell / cols));
   vec2 cuv = (g + 0.5 + (vec2(h1, h2) - 0.5) * uJitter) / uGrid;
@@ -122,7 +124,7 @@ void main() {
   float m = mix(1.0, texture(uMask, uv).r, uMaskOn);
   float keep = mix(uBgKeep, 1.0, m);
   float vis = smoothstep(uCutoff, uCutoff + 0.06, lum);
-  if (h3 > keep || vis < 0.002) {
+  if (h3 > keep || vis < 0.002 || h8 < uAbstract * 0.2) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
     gl_PointSize = 0.0;
     vColor = vec4(0.0);
@@ -151,12 +153,19 @@ void main() {
     z += snoise(q + vec3(9.1, 2.2, t * 0.2)) * uMotion * 0.05;
   }
 
+  // loosen the picture: scatter pieces off the grid and throw a few strays
+  pxy += (vec2(h2, h1) - 0.5) * (2.0 / uGrid.y) * uAbstract * 2.5;
+  if (h6 > 0.96) {
+    pxy += flow * uAbstract * 0.12;
+    z += (h4 - 0.5) * uAbstract * 0.3;
+  }
+
   vec4 clip = uMVP * vec4(pxy, z, 1.0);
   gl_Position = clip;
 
   float s = (2.0 / uGrid.y) * uPxUnit * uSize;
   s *= mix(1.0, 0.35 + lum * 1.15, uSizeLuma);
-  s *= mix(1.0, 0.4 + 1.2 * h6, uSizeVar);
+  s *= mix(1.0, 0.4 + 1.2 * h6, max(uSizeVar, uAbstract * 0.7));
   s *= uRefDist / clip.w;
   gl_PointSize = clamp(s, 1.0, uMaxPoint);
 
@@ -166,6 +175,21 @@ void main() {
   } else if (uColorMode == 2) {
     col = palette(clamp(lum * 0.5 + h7 * 0.55, 0.0, 1.0));
     col *= mix(0.5, 1.1, smoothstep(0.0, 0.7, lum));
+  } else if (uColorMode == 3) {
+    // artistic: colour follows the picture's structure (hue and light) but is
+    // remapped through the palette, with painterly drift and per-piece variation
+    float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b));
+    float d = mx - mn;
+    float sat = d / max(mx, 0.001);
+    float hue = 0.0;
+    if (d > 0.0001) {
+      hue = (mx == c.r ? mod((c.g - c.b) / d, 6.0) : (mx == c.g ? (c.b - c.r) / d + 2.0 : (c.r - c.g) / d + 4.0)) / 6.0;
+    }
+    float base = mix(lum * 1.25 + 0.15, hue, smoothstep(0.12, 0.45, sat));
+    float field = snoise(vec3(cuv * vec2(uAspect, 1.0) * 3.0, t * 0.05)) * 0.09;
+    float x = base + field + (h7 - 0.5) * 0.12 + t * 0.012;
+    col = palette(1.0 - abs(2.0 * fract(x) - 1.0));
+    col *= mix(0.4, 1.15, smoothstep(0.0, 0.65, lum));
   }
   col *= uBright;
 
@@ -434,13 +458,13 @@ export class ParticleEngine {
     f1('uRefDist', REF_DIST);
     f1('uMaxPoint', this.maxPoint);
     f1('uSize', c.size); f1('uDepth', c.depth); f1('uMotion', c.motion); f1('uSpeed', c.speed);
-    f1('uSat', c.sat); f1('uBright', c.bright); f1('uBgKeep', c.bgKeep); f1('uCutoff', c.cutoff);
+    f1('uAbstract', c.abstract ?? 0); f1('uSat', c.sat); f1('uBright', c.bright); f1('uBgKeep', c.bgKeep); f1('uCutoff', c.cutoff);
     f1('uAlpha', form.alpha); f1('uJitter', form.jitter); f1('uLife', form.life);
     f1('uSizeLuma', form.sizeLuma); f1('uSizeVar', form.sizeVar); f1('uSpin', form.spin);
     f1('uRandRot', form.randRot); f1('uSides', form.sides); f1('uTwinkle', form.twinkle); f1('uRise', form.rise);
     f1('uShade', form.shade);
     gl.uniform1i(u.uShape, SHAPES[form.shape]);
-    gl.uniform1i(u.uColorMode, { original: 0, gradient: 1, scatter: 2 }[c.color] ?? 0);
+    gl.uniform1i(u.uColorMode, { original: 0, gradient: 1, scatter: 2, artistic: 3 }[c.color] ?? 0);
     const stops = (PALETTES[c.palette] || PALETTES.sunset).stops.flatMap(hexToRgb);
     gl.uniform3fv(u.uPal, stops);
 

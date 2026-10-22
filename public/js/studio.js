@@ -43,6 +43,7 @@ const SLIDERS = {
   'sl-particles': [
     ['density', 'Density', 20, 600, 10, (v) => `${v}k`],
     ['layers', 'Depth layers', 1, 4, 1, (v) => `${v}×`],
+    ['abstract', 'Abstraction', 0, 1, 0.01, (v) => Math.round(v * 100) + '%'],
     ['size', 'Piece size', 0.3, 8, 0.05, (v) => v.toFixed(2)],
     ['depth', 'Depth', 0, 1.5, 0.01, (v) => v.toFixed(2)],
     ['motion', 'Movement', 0, 2, 0.01, (v) => v.toFixed(2)],
@@ -94,7 +95,7 @@ function radioGroup(host, items, current, onPick) {
 }
 
 const markColor = radioGroup('seg-color',
-  [{ key: 'original', label: 'Original' }, { key: 'gradient', label: 'Gradient' }, { key: 'scatter', label: 'Scatter' }],
+  [{ key: 'artistic', label: 'Artistic' }, { key: 'original', label: 'Original' }, { key: 'gradient', label: 'Gradient' }, { key: 'scatter', label: 'Scatter' }],
   state.cfg.color, (k) => set({ color: k }));
 const markPalette = radioGroup('palettes',
   Object.entries(PALETTES).map(([key, p]) => ({
@@ -102,7 +103,7 @@ const markPalette = radioGroup('palettes',
     style: `linear-gradient(90deg, ${p.stops.join(',')})`,
   })), state.cfg.palette, (k) => {
     const patch = { palette: k };
-    if (state.cfg.color === 'original') { patch.color = 'gradient'; markColor('gradient'); }
+    if (state.cfg.color === 'original') { patch.color = 'artistic'; markColor('artistic'); }
     set(patch);
   });
 const markBackdrop = radioGroup('backdrops',
