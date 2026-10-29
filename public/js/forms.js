@@ -1,5 +1,6 @@
-// Every "form" is a recipe for how the video is rebuilt out of particles.
-// `defaults` seed the sliders; the other keys are fixed traits of the look.
+// Every "form" is a recipe for how the video is rebuilt. `kind` picks the
+// renderer: particles (point sprites), toon (cartoon filter) or immersive (3D
+// room). `defaults` seed the sliders; the other keys are fixed traits of the look.
 
 export const PALETTES = {
   sunset: { label: 'Sunset', stops: ['#2a0f2e', '#c1275a', '#f2542d', '#f7b32b', '#fff1d0'] },
@@ -21,65 +22,81 @@ export const BACKGROUNDS = {
   ember: { label: 'Ember', color: '#1f0b06' },
 };
 
-export const SHAPES = { disc: 0, gas: 1, poly: 2, bubble: 3, star: 4, ember: 5 };
+export const SHAPES = { disc: 0, poly: 2, star: 4, ember: 5 };
 
 export const FORMS = {
   particles: {
-    label: 'Particles',
+    kind: 'particles', label: 'Particles',
     blurb: 'Dense, lit grains with real depth.',
     shape: 'disc', blend: 'alpha', alpha: 1, shade: 0.25, jitter: 0.9,
     life: 0, sizeLuma: 0, sizeVar: 0.25, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0,
     defaults: { density: 150, layers: 2, size: 0.95, depth: 0.55, motion: 0.3, speed: 1, color: 'artistic', palette: 'aurora', sat: 1.2, bright: 1.5, bgKeep: 0.4, cutoff: 0.02, abstract: 0.55 },
   },
-  gas: {
-    label: 'Gas',
-    blurb: 'Soft colour clouds that drift off the shapes in the frame.',
-    shape: 'gas', blend: 'add', alpha: 0.13, shade: 0, jitter: 1,
-    life: 1, sizeLuma: 0.2, sizeVar: 0.8, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0.4,
-    defaults: { density: 90, layers: 2, size: 4.5, depth: 0.3, motion: 0.75, speed: 0.8, color: 'artistic', palette: 'aurora', sat: 1.45, bright: 1.25, bgKeep: 0.15, cutoff: 0.03, abstract: 0.6 },
-  },
   polygons: {
-    label: 'Polygons',
+    kind: 'particles', label: 'Polygons',
     blurb: 'Small faceted shapes in loud colours.',
     shape: 'poly', blend: 'alpha', alpha: 1, shade: 0, jitter: 0.5,
     life: 0, sizeLuma: 0.3, sizeVar: 0.5, spin: 0.5, randRot: 1, sides: 0, twinkle: 0, rise: 0,
     defaults: { density: 42, layers: 2, size: 1.45, depth: 0.7, motion: 0.5, speed: 1, color: 'artistic', palette: 'candy', sat: 1.2, bright: 1.1, bgKeep: 0.2, cutoff: 0.04, abstract: 0.5 },
   },
   circles: {
-    label: 'Circles',
+    kind: 'particles', label: 'Circles',
     blurb: 'Halftone dots that swell with the light.',
     shape: 'disc', blend: 'alpha', alpha: 1, shade: 0.12, jitter: 0,
     life: 0, sizeLuma: 1, sizeVar: 0, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0,
     defaults: { density: 36, layers: 1, size: 1.55, depth: 0.25, motion: 0.2, speed: 1, color: 'artistic', palette: 'blossom', sat: 1.3, bright: 1.15, bgKeep: 0.1, cutoff: 0.05, abstract: 0.4 },
   },
-  bubbles: {
-    label: 'Bubbles',
-    blurb: 'Glassy soap bubbles with a rainbow film.',
-    shape: 'bubble', blend: 'add', alpha: 0.4, shade: 0, jitter: 0.9,
-    life: 0, sizeLuma: 0.2, sizeVar: 1, spin: 0, randRot: 0, sides: 0, twinkle: 0, rise: 0,
-    defaults: { density: 18, layers: 2, size: 1.55, depth: 0.9, motion: 1.0, speed: 0.7, color: 'artistic', palette: 'aurora', sat: 1.3, bright: 1.0, bgKeep: 0.15, cutoff: 0.05, abstract: 0.5 },
-  },
   stardust: {
-    label: 'Stardust',
+    kind: 'particles', label: 'Stardust',
     blurb: 'Twinkling stars with a soft halo.',
     shape: 'star', blend: 'add', alpha: 0.5, shade: 0, jitter: 1,
     life: 0, sizeLuma: 0.6, sizeVar: 1, spin: 0.25, randRot: 1, sides: 0, twinkle: 1, rise: 0,
     defaults: { density: 55, layers: 2, size: 2.1, depth: 0.7, motion: 0.4, speed: 1, color: 'artistic', palette: 'neon', sat: 1.4, bright: 1.05, bgKeep: 0.08, cutoff: 0.06, abstract: 0.5 },
   },
   embers: {
-    label: 'Embers',
+    kind: 'particles', label: 'Embers',
     blurb: 'Glowing sparks that rise and fade out.',
     shape: 'ember', blend: 'add', alpha: 0.5, shade: 0, jitter: 1,
     life: 1, sizeLuma: 0.5, sizeVar: 0.8, spin: 0, randRot: 0, sides: 0, twinkle: 0.3, rise: 1.4,
     defaults: { density: 130, layers: 2, size: 2.8, depth: 0.35, motion: 0.9, speed: 1.1, color: 'gradient', palette: 'ember', sat: 1.2, bright: 1.45, bgKeep: 0.0, cutoff: 0.05, abstract: 0.5 },
   },
   pixels: {
-    label: 'Pixels',
+    kind: 'particles', label: 'Pixels',
     blurb: 'Square voxels pushed out of the screen.',
     shape: 'poly', blend: 'alpha', alpha: 1, shade: 0, jitter: 0,
     life: 0, sizeLuma: 0, sizeVar: 0, spin: 0, randRot: 0, sides: 4, twinkle: 0, rise: 0,
     defaults: { density: 40, layers: 1, size: 1.02, depth: 1.0, motion: 0.25, speed: 1, color: 'artistic', palette: 'twilight', sat: 1.2, bright: 1.05, bgKeep: 0.3, cutoff: 0.02, abstract: 0.3 },
   },
+
+  // ---- animation: the frame is repainted as a cartoon ----
+  toon: {
+    kind: 'toon', style: 0, label: 'Toon',
+    blurb: 'Flat acid colours, thick wobbly ink lines and hard cel shadows, like a late-night sci-fi cartoon.',
+    defaults: { lines: 1.25, bands: 4, smooth: 0.55, hold: 12, boil: 1, glow: 0.15, extras: 0.6, sat: 1.2, bright: 1.05 },
+  },
+  anime: {
+    kind: 'toon', style: 1, label: 'Anime',
+    blurb: 'Soft cel shading, painted skies, fine coloured line art and bloom, Japanese animation style.',
+    defaults: { lines: 0.8, bands: 3, smooth: 0.7, hold: 12, boil: 0.25, glow: 0.7, extras: 0.6, sat: 1.25, bright: 1.08 },
+  },
+  kungfu: {
+    kind: 'toon', style: 2, label: 'Kung Fu',
+    blurb: 'Warm golden light, painterly textures, brush-ink edges and drifting blossom, like a big martial-arts feature.',
+    defaults: { lines: 1.0, bands: 5, smooth: 0.85, hold: 24, boil: 0.5, glow: 0.8, extras: 0.7, sat: 1.15, bright: 1.05 },
+  },
+
+  // ---- step inside the video ----
+  immersive: {
+    kind: 'immersive', label: 'Immersive',
+    blurb: 'Step inside: the clip wraps around you in 3D with real parallax. Drag to look, scroll or WASD to move, click to ripple.',
+    defaults: { pop: 0.8, wrap: 0.4, swarm: 0.5, ambient: 0.75, skin: 'original', depthSrc: 'auto', tour: 0.5, sat: 1.1, bright: 1.05 },
+  },
+};
+
+export const KINDS = {
+  particles: { label: 'Particles' },
+  toon: { label: 'Animate' },
+  immersive: { label: 'Immersive' },
 };
 
 export const DEFAULT_FORM = 'particles';

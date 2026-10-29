@@ -1,6 +1,6 @@
 # Pollen
 
-Turn video into dense, living particle footage. Pick a look (particles, gas, polygons, circles, bubbles, stardust, embers, pixels), tune it, render it, download it.
+Turn video into something else. Rebuild it from particles (particles, polygons, circles, stardust, embers, pixels), repaint it as an animation (Toon, Anime, Kung Fu), or step inside it in 3D (Immersive). Tune it, render it, download it.
 
 ## Two ways to host it
 
@@ -29,7 +29,10 @@ Open http://localhost:3000, create an account, and go to the Studio.
 
 ## How it works
 
-**Rendering** (`public/js/engine.js`): a WebGL2 point renderer. The only CPU work per frame is uploading the current video frame as a texture. Each particle is derived from its vertex index in the vertex shader: it samples the video, picks a colour, is pushed forward/back by brightness and the subject mask, animated with simplex noise, and drawn as a shaped sprite (lit disc, gas puff, polygon, bubble, star, ember). Density goes up to 600k cells x 4 depth layers.
+**Rendering** (`public/js/engine.js`): one WebGL2 context, three renderers. The only CPU work per frame is uploading the current video frame as a texture.
+- *Particles*: each particle is derived from its vertex index in the vertex shader: it samples the video, picks a colour, is pushed forward/back by brightness and the subject mask, animated with simplex noise, and drawn as a shaped sprite (lit disc, polygon, star, ember). Density goes up to 600k cells x 4 depth layers.
+- *Animate* (`toon.js`): a Kuwahara paint pass, a bloom chain and a style pass (colour bands, Sobel ink lines that "boil", grading, sparkles/petals/god rays). Frames can be held at 8/12/24 drawings a second like hand-drawn animation.
+- *Immersive* (`immersive.js`): the frame wraps around the viewer as a mesh, every pixel pushed toward you along its own view ray by a depth map, inside a dome lit by the video with a reflective floor and a particle swarm. Depth comes from the sample clip's exact depth map, an optional AI model (Depth Anything V2 small via transformers.js, `depth.js` + `depth-worker.js`, WebGPU or WASM, downloaded from Hugging Face on first use), or a built-in estimate. Controls: drag, scroll/pinch, WASD/QE, click to ripple, phone gyro, side-by-side stereo, and WebXR headsets (thumbsticks walk and turn, trigger ripples).
 
 **Looks** (`public/js/forms.js`): each look is a recipe of shape, blending, motion and default slider values.
 

@@ -1,8 +1,14 @@
-// WebGL2 particle renderer. The CPU only uploads the current video frame;
-// every particle is placed, coloured, sized and animated on the GPU from its
-// vertex index, so hundreds of thousands of them stay smooth.
+// WebGL2 renderer. The CPU only uploads the current video frame; everything
+// else happens on the GPU. Three kinds of look share one context:
+//   particles - every particle is placed, coloured, sized and animated from its
+//               vertex index, so hundreds of thousands of them stay smooth
+//   toon      - the frame is repainted as a cartoon (toon.js)
+//   immersive - the frame becomes a 3D room you can walk into (immersive.js)
 
 import { FORMS, PALETTES, BACKGROUNDS, SHAPES, DEFAULT_FORM, hexToRgb } from './forms.js';
+import { mul, perspective, translate, rotX, rotY, compile, makeTexture, Target } from './mat4.js';
+import { ToonRenderer } from './toon.js';
+import { ImmersiveRoom } from './immersive.js';
 
 const VERT = /* glsl */ `#version 300 es
 precision highp float;
@@ -240,8 +246,6 @@ void main() {
     col *= mix(1.0, 0.5 + 0.7 * l, uShade);
     col += uShade * 0.3 * pow(l, 24.0);
     a *= edge;
-  } else if (uShape == 1) {               // gas puff
-    a *= exp(-d * d * 3.2) * (1.0 - smoothstep(0.85, 1.0, d));
   } else if (uShape == 2) {               // polygon
     float n = vInfo.y;
     float ang = atan(r.y, r.x);
@@ -254,19 +258,6 @@ void main() {
     float facet = fract(sin((k + 3.0) * 12.9898 + vInfo.x * 78.233) * 43758.5453);
     col *= 0.84 + 0.3 * facet;
     a *= edge;
-  } else if (uShape == 3) {               // soap bubble
-    if (d > 1.0) discard;
-    float ang = atan(p.y, p.x);
-    float rim = smoothstep(0.55, 0.97, d) * (1.0 - smoothstep(0.97, 1.0, d));
-    vec3 film = 0.5 + 0.5 * cos(vec3(0.0, 2.094, 4.188) + ang * 2.0 + d * 5.0 + vInfo.x * 6.2831853);
-    vec3 rimCol = mix(col, film, 0.55) * 1.3;
-    float spec = smoothstep(0.34, 0.0, length(p - vec2(-0.38, -0.42)));
-    float spec2 = smoothstep(0.2, 0.0, length(p - vec2(0.42, 0.45))) * 0.35;
-    float fill = 0.1;
-    vec3 oc = col * fill + rimCol * rim + vec3(1.0) * (spec * 0.9 + spec2);
-    float oa = clamp(fill + rim + spec + spec2, 0.0, 1.0) * (1.0 - smoothstep(0.97, 1.0, d));
-    col = oc / max(oa, 0.001);
-    a *= oa;
   } else if (uShape == 4) {               // star
     float ang = atan(r.y, r.x);
     float edge = 0.3 + 0.62 * pow(abs(cos(2.5 * ang)), 2.2);
@@ -285,22 +276,6 @@ void main() {
 }
 `;
 
-/* ---------- tiny mat4 helpers (column-major) ---------- */
-const mul = (a, b) => {
-  const o = new Float32Array(16);
-  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
-    o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
-  }
-  return o;
-};
-const perspective = (fovy, aspect, near, far) => {
-  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
-  return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
-};
-const translate = (x, y, z) => new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1]);
-const rotX = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]); };
-const rotY = (a) => { const c = Math.cos(a), s = Math.sin(a); return new Float32Array([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1]); };
-
 const FOV = (32 * Math.PI) / 180;
 const REF_DIST = 1 / Math.tan(FOV / 2); // puts the plane (height 2) exactly in frame
 
@@ -310,26 +285,28 @@ export class ParticleEngine {
     const gl = canvas.getContext('webgl2', {
       antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false,
     });
-    if (!gl) throw new Error('This browser can’t run WebGL 2, which the particle engine needs.');
+    if (!gl) throw new Error('This browser can’t run WebGL 2, which the engine needs.');
     this.gl = gl;
-    this.prog = this.#program(VERT, FRAG);
-    this.u = {};
-    const n = gl.getProgramParameter(this.prog, gl.ACTIVE_UNIFORMS);
-    for (let i = 0; i < n; i++) {
-      const info = gl.getActiveUniform(this.prog, i);
-      const name = info.name.replace(/\[0\]$/, '');
-      this.u[name] = gl.getUniformLocation(this.prog, info.name);
-    }
+    ({ p: this.prog, u: this.u } = compile(gl, VERT, FRAG));
     this.vao = gl.createVertexArray();
     this.maxPoint = Math.min(gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE)[1], 256);
 
-    this.videoTex = this.#texture(gl.LINEAR);
-    this.maskTex = this.#texture(gl.LINEAR);
+    this.videoTex = makeTexture(gl);
+    this.maskTex = makeTexture(gl);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 1, 1, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array([255]));
+    gl.activeTexture(gl.TEXTURE0);
     this.maskOn = false;
+    this.mips = false;
+
+    this.toon = null;   // built on first use
+    this.room = null;
+    this.skin = null;
+    this.depthSource = null;
+    this.aiDepth = null;
+    this.xr = null;
 
     this.texW = 0; this.texH = 0;
     this.source = null;
@@ -338,42 +315,21 @@ export class ParticleEngine {
     this.grid = { cols: 1, rows: 1, cells: 1 };
     this.mouse = { x: 0, y: 0, sx: 0, sy: 0 };
     this.count = 0;
+    this.stereo = false;
+    this.lastTime = 0;
     this.setConfig({ form: DEFAULT_FORM, ...FORMS[DEFAULT_FORM].defaults, drift: 0.6, background: 'plum' });
   }
 
-  #program(vs, fs) {
-    const gl = this.gl;
-    const mk = (type, src) => {
-      const s = gl.createShader(type);
-      gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error('Shader error: ' + gl.getShaderInfoLog(s));
-      return s;
-    };
-    const p = gl.createProgram();
-    gl.attachShader(p, mk(gl.VERTEX_SHADER, vs));
-    gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs));
-    gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error('Link error: ' + gl.getProgramInfoLog(p));
-    return p;
-  }
-
-  #texture(filter) {
-    const gl = this.gl;
-    const t = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, t);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    return t;
-  }
-
-  setSource(el) { this.source = el; }
+  // depthCanvas: an exact depth map drawn alongside the source (the sample clip has one)
+  setSource(el, depthCanvas = null) { this.source = el; this.depthSource = depthCanvas; this.toon?.invalidate(); }
 
   setConfig(patch) {
     this.cfg = { ...(this.cfg || {}), ...patch };
     this.grid.dirty = true;
+    this.toon?.invalidate();
   }
+
+  get kind() { return (FORMS[this.cfg.form] || FORMS[DEFAULT_FORM]).kind; }
 
   setPointer(x, y) { this.mouse.x = x; this.mouse.y = y; }
 
@@ -390,10 +346,17 @@ export class ParticleEngine {
       this.maskW = w; this.maskH = h;
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.activeTexture(gl.TEXTURE0);
     this.maskOn = true;
   }
 
   clearMask() { this.maskOn = false; }
+
+  // AI depth from depth.js: { data, w, h }, or null to go back to the built-in estimate
+  setDepth(d) { this.aiDepth = d; this.aiDirty = true; }
+
+  // The 3D room, created on demand. The studio sends input straight to it.
+  get immersive() { return (this.room ??= new ImmersiveRoom(this.gl)); }
 
   resize(w, h) {
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -401,7 +364,12 @@ export class ParticleEngine {
     }
   }
 
-  get particleCount() { return this.count; }
+  get particleCount() {
+    const k = this.kind;
+    if (k === 'toon') return 0;
+    if (k === 'immersive') return Math.round(50000 * (this.cfg.swarm ?? 0.5));
+    return this.count;
+  }
 
   #uploadSource() {
     const gl = this.gl, s = this.source;
@@ -419,38 +387,112 @@ export class ParticleEngine {
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, s);
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    // the 3D room samples blurred versions of the frame, so it needs mipmaps
+    const wantMips = this.kind === 'immersive';
+    if (wantMips) gl.generateMipmap(gl.TEXTURE_2D);
+    if (wantMips !== this.mips) {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, wantMips ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
+      this.mips = wantMips;
+    }
     const aspect = w / h;
     if (Math.abs(aspect - this.aspect) > 1e-4) { this.aspect = aspect; this.grid.dirty = true; }
     return true;
   }
 
   #rebuildGrid() {
-    const cells = Math.max(1000, this.cfg.density * 1000);
+    const cells = Math.max(1000, (this.cfg.density ?? 150) * 1000);
     const rows = Math.max(8, Math.round(Math.sqrt(cells / this.aspect)));
     const cols = Math.max(8, Math.round(rows * this.aspect));
     this.grid = { cols, rows, cells: cols * rows, dirty: false };
-    this.count = cols * rows * Math.max(1, Math.round(this.cfg.layers));
+    this.count = cols * rows * Math.max(1, Math.round(this.cfg.layers ?? 1));
   }
 
-  render(time) {
+  render(time, xrFrame = null) {
     const gl = this.gl, c = this.cfg, form = FORMS[c.form] || FORMS[DEFAULT_FORM];
+    const dt = Math.max(0, Math.min(0.1, time - this.lastTime));
+    this.lastTime = time;
     const hasFrame = this.#uploadSource();
     if (this.grid.dirty) this.#rebuildGrid();
 
+    if (form.kind === 'toon') {
+      if (!hasFrame) return this.#clear();
+      this.toon ??= new ToonRenderer(gl);
+      this.toon.render({ src: this.videoTex, srcW: this.texW, srcH: this.texH, outW: this.canvas.width, outH: this.canvas.height, time, cfg: c, style: form.style });
+      return;
+    }
+    if (form.kind === 'immersive') {
+      if (!hasFrame) return this.#clear();
+      this.#renderRoom(time, dt, xrFrame);
+      return;
+    }
+    this.#renderParticles(time, hasFrame, form);
+  }
+
+  #clear() {
+    const gl = this.gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  }
+
+  #renderRoom(time, dt, xrFrame) {
+    const gl = this.gl, c = this.cfg, room = this.immersive;
+    // what is painted on the walls: the clip itself, or one of the cartoon styles
+    let skin = this.videoTex;
+    const skinForm = FORMS[c.skin];
+    if (skinForm?.kind === 'toon') {
+      this.toon ??= new ToonRenderer(gl);
+      if (!this.skin) {
+        this.skin = new Target(gl);
+        gl.bindTexture(gl.TEXTURE_2D, this.skin.tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      }
+      const h = Math.min(this.texH, 1080), w = Math.round(h * this.aspect);
+      this.toon.render({ src: this.videoTex, srcW: this.texW, srcH: this.texH, outW: w, outH: h, target: this.skin, time, cfg: { ...skinForm.defaults, sat: 1, bright: 1 }, style: skinForm.style });
+      gl.bindTexture(gl.TEXTURE_2D, this.skin.tex);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      skin = this.skin.tex;
+    }
+
+    // depth: AI if it is on and ready, else the sample's exact map, else the room's own estimate
+    if (c.depthSrc === 'ai' && this.aiDepth) {
+      if (this.aiDirty) { room.setExternalDepth(this.aiDepth); this.aiDirty = false; }
+    } else if (this.depthSource && c.depthSrc !== 'guess') {
+      room.setExternalDepth(this.depthSource); this.aiDirty = true;
+    } else {
+      room.setExternalDepth(null); this.aiDirty = true;
+    }
+
+    let views, fb = null;
+    if (xrFrame) {
+      const layer = xrFrame.session.renderState.baseLayer;
+      views = room.xrViews(xrFrame, this.xr.ref, layer);
+      if (!views) return;
+      fb = layer.framebuffer;
+    } else {
+      views = room.viewsFor(this.canvas.width, this.canvas.height, this.stereo);
+    }
+    room.render({ time, dt, skin, vidTex: this.videoTex, maskTex: this.maskTex, maskOn: this.maskOn, aspect: this.aspect, cfg: c, views, fb });
+  }
+
+  #renderParticles(time, hasFrame, form) {
+    const gl = this.gl, c = this.cfg;
     const bg = hexToRgb((BACKGROUNDS[c.background] || BACKGROUNDS.plum).color);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clearColor(bg[0], bg[1], bg[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if (!hasFrame) return;
 
-    // gentle camera drift + pointer parallax
+    // gentle camera drift + pointer parallax (+ optional scripted dolly/turn for the landing page)
     const m = this.mouse;
     m.sx += (m.x - m.sx) * 0.06; m.sy += (m.y - m.sy) * 0.06;
-    const dr = c.drift;
-    const ry = (Math.sin(time * 0.25) * 0.05 + m.sx * 0.3) * dr;
+    const dr = c.drift ?? 0.6;
+    const ry = (Math.sin(time * 0.25) * 0.05 + m.sx * 0.3) * dr + (c.turn ?? 0);
     const rx = (Math.cos(time * 0.19) * 0.03 + m.sy * 0.18) * dr;
-    const mvp = mul(perspective(FOV, this.canvas.width / this.canvas.height, 0.1, 20),
-      mul(translate(0, 0, -REF_DIST), mul(rotX(rx), rotY(ry))));
+    const mvp = mul(perspective(FOV, this.canvas.width / this.canvas.height, 0.05, 20),
+      mul(translate(0, 0, -REF_DIST + (c.dolly ?? 0)), mul(rotX(rx), rotY(ry))));
 
     gl.useProgram(this.prog);
     gl.bindVertexArray(this.vao);
@@ -489,7 +531,50 @@ export class ParticleEngine {
       gl.enable(gl.SAMPLE_ALPHA_TO_COVERAGE);
     }
     gl.drawArrays(gl.POINTS, 0, this.count);
+    gl.activeTexture(gl.TEXTURE0);
   }
+
+  /* ---------------- WebXR ---------------- */
+  static async vrSupported() {
+    try { return !!(navigator.xr && await navigator.xr.isSessionSupported('immersive-vr')); } catch { return false; }
+  }
+
+  // Runs the room inside a headset. onFrame(dt) lets the page keep its own
+  // per-frame work going (sample clip, subject mask), since window rAF pauses.
+  async enterVR(onFrame, onEnd) {
+    const gl = this.gl;
+    const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] });
+    try {
+      await gl.makeXRCompatible();
+      const layer = new XRWebGLLayer(session, gl, { antialias: true });
+      session.updateRenderState({ baseLayer: layer, depthNear: 0.05, depthFar: 60 });
+      this.xr = { session, ref: await session.requestReferenceSpace('local') };
+    } catch (e) { session.end().catch(() => {}); throw e; }
+    const room = this.immersive;
+    let last = null;
+    session.addEventListener('select', () => room.ripple(undefined, undefined, 1.2));
+    session.addEventListener('end', () => { this.xr = null; onEnd?.(); });
+    const loop = (t, frame) => {
+      if (!this.xr) return;
+      session.requestAnimationFrame(loop);
+      const dt = last == null ? 0 : Math.min(0.1, (t - last) / 1000);
+      last = t;
+      // thumbsticks: left walks, right turns
+      for (const src of session.inputSources) {
+        const ax = src.gamepad?.axes;
+        if (!ax || ax.length < 4) continue;
+        const x = ax[2], y = ax[3];
+        if (src.handedness === 'right') { if (Math.abs(x) > 0.2) room.look(x * dt * 1.6, 0); }
+        else if (Math.abs(x) > 0.2 || Math.abs(y) > 0.2) room.move(-y * dt * 1.5, x * dt * 1.5, 0);
+      }
+      onFrame?.(dt);
+      this.render(this.lastTime + dt, frame);
+    };
+    session.requestAnimationFrame(loop);
+    return session;
+  }
+
+  exitVR() { this.xr?.session.end().catch(() => {}); }
 
   // Current frame as a PNG (must be called right after render()).
   snapshot() {

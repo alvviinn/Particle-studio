@@ -3,79 +3,118 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pollen — video rebuilt from particles</title>
-  <meta name="description" content="Upload a video and rebuild it out of dense particles, drifting gas, bubbles or colourful polygons. Download the result.">
-  <meta name="theme-color" content="#fff6ea">
+  <title>Pollen — video, taken apart</title>
+  <meta name="description" content="Turn any video into living particles, a hand-drawn cartoon, anime, a golden kung fu epic, or a 3D world you can walk into. Right in your browser.">
+  <meta name="theme-color" content="#07060b">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/site.css">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
+<body class="landing">
   <header id="nav"></header>
+  <canvas id="stage" aria-hidden="true"></canvas>
+  <div class="stage-glow" id="glow" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
   <main>
-    <section class="hero">
-      <div class="wrap">
-        <div>
-          <span class="eyebrow">Video, taken apart</span>
-          <h1>Turn any clip into a swarm of <em>living particles.</em></h1>
-          <p class="lead">Drop in a video and it comes apart into hundreds of thousands of glowing grains, drifting gas, soap bubbles or tiny faceted shapes. The people and objects keep their outline. Then you download the result.</p>
+    <!-- 1. hero: the clip explodes into particles as you scroll -->
+    <section class="chapter" id="ch-hero" data-len="3">
+      <div class="pin">
+        <div class="hero-type">
+          <p class="kicker"><span class="dot"></span> Pollen / Studio for moving pictures</p>
+          <h1 class="mega"><span class="line">Video,</span><span class="line outline">taken</span><span class="line"><em>apart.</em></span></h1>
+          <p class="lede">Particles. Cartoons. Anime. A golden martial-arts epic. A 3D world you can walk into. Drop in any clip and watch it become something else, live, in your browser.</p>
           <div class="cta">
-            <a class="btn btn-primary" href="auth.html?mode=register">Start making videos</a>
-            <a class="btn btn-ghost" href="#forms">See the looks</a>
+            <a class="btn btn-primary btn-xl" href="studio.html">Open the studio</a>
+            <a class="btn btn-glass" href="#ch-animate">See it move ↓</a>
           </div>
         </div>
-        <div class="stage">
-          <canvas id="hero" width="1280" height="720" aria-label="Live preview of the particle effect"></canvas>
-          <div class="chips" id="chips" role="group" aria-label="Choose a look"></div>
+        <ol class="callouts" id="hero-callouts">
+          <li data-at="0.18"><b>01 / First frame</b><span>Every pixel is read straight off the video, sixty times a second.</span></li>
+          <li data-at="0.45"><b>02 / Set loose</b><span>Hundreds of thousands of pieces lift off the picture and keep its shape.</span></li>
+          <li data-at="0.72"><b>03 / Rebuilt in depth</b><span>Bright things come forward, the camera flies through.</span></li>
+        </ol>
+        <div class="scroll-cue" id="cue"><i></i>Scroll</div>
+        <div class="progress"><i id="hero-bar"></i></div>
+      </div>
+    </section>
+
+    <!-- 2. animate: three styles, carousel-style -->
+    <section class="chapter" id="ch-animate" data-len="4">
+      <div class="pin">
+        <div class="anim-head">
+          <p class="kicker"><span class="dot"></span> New · Animate</p>
+          <h2 class="big">Your footage,<br><em>hand-drawn.</em></h2>
+        </div>
+        <ul class="styles" id="styles">
+          <li data-k="toon"><span class="n">01</span><strong>Toon</strong><p>Flat acid colour, thick ink lines that wobble every frame, hard cel shadows. Late-night sci-fi cartoon energy.</p></li>
+          <li data-k="anime"><span class="n">02</span><strong>Anime</strong><p>Soft cel shading, painted skies, fine coloured line art, bloom and sparkles. Drawn on twos, like the real thing.</p></li>
+          <li data-k="kungfu"><span class="n">03</span><strong>Kung Fu</strong><p>Warm golden light, painterly texture, brush-ink edges, god rays and drifting blossom. Feature-film grade.</p></li>
+        </ul>
+        <div class="style-meter" id="style-meter"><i></i><i></i><i></i></div>
+      </div>
+    </section>
+
+    <!-- 3. immersive: walk into the clip -->
+    <section class="chapter" id="ch-immersive" data-len="3">
+      <div class="pin">
+        <div class="imm-type">
+          <p class="kicker"><span class="dot"></span> New · Immersive</p>
+          <h2 class="mega small"><span class="line">Step</span><span class="line outline">inside</span><span class="line"><em>the shot.</em></span></h2>
+        </div>
+        <div class="imm-side">
+          <p>The clip wraps around you with real depth. Move and the world opens up: foreground slides past background, light spills on the floor, pieces of the picture drift past your head.</p>
+          <ul class="chips-row">
+            <li>Drag to look</li><li>WASD to fly</li><li>Click to ripple</li><li>Phone gyro</li><li>Stereo</li><li>No headset needed</li><li>AI depth</li>
+          </ul>
+          <a class="btn btn-primary" href="studio.html?look=immersive">Step in</a>
         </div>
       </div>
     </section>
 
-    <section class="section" id="forms">
-      <div class="wrap">
-        <span class="eyebrow">Eight looks</span>
-        <h2>One video, a different material each time.</h2>
-        <p class="sub">Every look is a full recipe: the shape of each piece, how it moves, how it glows. Swap between them and tune the rest with sliders. These previews are rendered live from the same engine you will use.</p>
-        <div class="forms-grid" id="forms-grid"></div>
-      </div>
-    </section>
-
-    <section class="section tint">
-      <div class="wrap">
-        <span class="eyebrow">How it goes</span>
-        <h2>Three steps, no timeline.</h2>
-        <div class="steps">
-          <div class="step"><h3>Bring a video</h3><p>Any clip your browser can play. It never leaves your machine while you work, so big files are fine.</p></div>
-          <div class="step"><h3>Pick a material</h3><p>Choose gas, bubbles, polygons or grains, set the density and colours, and tell it to follow the person or object in frame.</p></div>
-          <div class="step"><h3>Render and keep it</h3><p>Record the whole thing to MP4 or WebM with the original sound, download it, and find it again in your library.</p></div>
+    <!-- everything below sits on solid ground -->
+    <div class="solid">
+      <section class="stats" aria-label="By the numbers">
+        <div class="wrap stat-grid">
+          <div><b data-count="2400000">0</b><span>pieces per frame, on the graphics card</span></div>
+          <div><b data-count="10">0</b><span>looks, from grains to a 3D room</span></div>
+          <div><b data-count="60" data-suffix="fps">0</b><span>live preview while you tune</span></div>
+          <div><b data-count="0" data-suffix=" MB">0</b><span>uploaded while you work. It stays on your machine.</span></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="section">
-      <div class="wrap">
-        <span class="eyebrow">Built properly</span>
-        <h2>Dense where it counts.</h2>
-        <div class="feat">
-          <div><h3>Up to two million pieces</h3><p>Particles are placed and shaded on the graphics card, so you can push the density far past what a canvas drawing loop could manage.</p></div>
-          <div><h3>Real depth</h3><p>Brightness and subject position push particles forward and back in 3D, with slow camera drift and pointer parallax.</p></div>
-          <div><h3>Follows the subject</h3><p>Detect people or motion so the background thins out and the particles gather around what matters.</p></div>
-          <div><h3>Palettes that match</h3><p>Keep the original colours, or map the picture to Sunset, Candy, Ocean, Neon, Ember and more.</p></div>
-          <div><h3>Exports with sound</h3><p>Up to 1440p, recorded straight from the render with the clip’s audio. MP4 where your browser supports it.</p></div>
-          <div><h3>Your own account</h3><p>Password sign-in, two-factor codes from any authenticator app, recovery codes, and a private library of your renders.</p></div>
-        </div>
-      </div>
-    </section>
+      <div class="marquee" aria-hidden="true"><div class="track" id="marquee"></div></div>
 
-    <section class="section flush">
-      <div class="wrap">
-        <div class="band">
-          <h2>Make your first one in about two minutes.</h2>
-          <a class="btn btn-primary" href="auth.html?mode=register">Create a free account</a>
+      <section class="gallery" id="looks">
+        <div class="wrap">
+          <div class="gal-head">
+            <h2 class="big">Ten ways<br>to <em>see it.</em></h2>
+            <p>Each preview is rendered live by the same engine you will use. Pick one to open it in the studio.</p>
+          </div>
+          <div class="gal-grid" id="gallery"></div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="how">
+        <div class="wrap how-grid">
+          <div class="how-step"><span>01</span><h3>Bring a clip</h3><p>Anything your browser can play. It never leaves your machine, so big files are fine.</p></div>
+          <div class="how-step"><span>02</span><h3>Pick a world</h3><p>Particles, a cartoon, or a room. Tune it with sliders and watch it change live.</p></div>
+          <div class="how-step"><span>03</span><h3>Render it</h3><p>Record to MP4 or WebM with the original sound. Download it or keep it in your library.</p></div>
+        </div>
+      </section>
+
+      <section class="finale">
+        <div class="wrap">
+          <h2 class="mega"><span class="line">Make</span><span class="line outline">something</span><span class="line"><em>outrageous.</em></span></h2>
+          <div class="cta">
+            <a class="btn btn-primary btn-xl" href="auth.html?mode=register">Create a free account</a>
+            <a class="btn btn-glass" href="studio.html">Try the studio</a>
+          </div>
+        </div>
+      </section>
+      <footer id="footer"></footer>
+    </div>
   </main>
-  <footer id="footer"></footer>
   <script type="module" src="js/landing.js"></script>
 </body>
 </html>

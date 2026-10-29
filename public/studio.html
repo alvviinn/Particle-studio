@@ -14,7 +14,8 @@
 
     <section class="left">
       <div class="frame" id="frame">
-        <canvas id="view" width="1920" height="1080"></canvas>
+        <canvas id="view" width="1920" height="1080" tabindex="0"></canvas>
+        <button class="fs-exit" id="fs-exit" type="button" hidden>Exit fullscreen</button>
         <div class="drop" id="drop" hidden>
           <div><strong>Drop a video here</strong><span>or use the button below</span></div>
         </div>
@@ -46,7 +47,7 @@
       <div class="card exportbox">
         <div class="row">
           <div><h2>Render</h2>
-          <p class="muted small" id="exp-note">Records the whole clip with its sound, exactly as the preview looks.</p></div>
+          <p class="muted small" id="exp-note">Records the whole clip with its sound, exactly as the preview looks. In Immersive, whatever camera moves you make are recorded too.</p></div>
           <div class="exp-actions">
             <button class="btn btn-ghost btn-sm" id="still">Save frame (PNG)</button>
             <button class="btn btn-primary" id="export">Render video</button>
@@ -66,26 +67,55 @@
     <aside class="panel" id="panel">
       <section>
         <h3>Look</h3>
-        <div class="tiles" id="tiles" role="radiogroup" aria-label="Look"></div>
+        <div id="tiles" role="radiogroup" aria-label="Look"></div>
         <p class="muted small" id="form-blurb"></p>
       </section>
 
-      <section>
+      <section data-kind="particles">
         <h3>Particles</h3>
         <div id="sl-particles"></div>
         <p class="hint" id="total"></p>
       </section>
 
-      <section>
-        <h3>Colour</h3>
-        <div class="seg" id="seg-color" role="radiogroup" aria-label="Colour mode"></div>
-        <div class="swatches" id="palettes" role="radiogroup" aria-label="Palette"></div>
-        <div id="sl-colour"></div>
-        <p class="label">Backdrop</p>
-        <div class="swatches" id="backdrops" role="radiogroup" aria-label="Backdrop"></div>
+      <section data-kind="toon">
+        <h3>Animation</h3>
+        <p class="label">Frame rate of the drawing</p>
+        <div class="seg" id="seg-hold" role="radiogroup" aria-label="Drawing frame rate"></div>
+        <div id="sl-toon"></div>
+      </section>
+
+      <section data-kind="immersive">
+        <h3>Immersive</h3>
+        <div class="imm-actions">
+          <button class="btn btn-primary btn-sm" id="b-full" type="button">Go immersive (fullscreen)</button>
+          <button class="btn btn-ghost btn-sm" id="b-stereo" type="button" aria-pressed="false">Stereo (phone headset)</button>
+          <button class="btn btn-ghost btn-sm" id="b-gyro" type="button" aria-pressed="false" hidden>Look by moving phone</button>
+          <button class="btn btn-ghost btn-sm" id="b-vr" type="button" hidden>VR headset (optional)</button>
+          <button class="btn btn-ghost btn-sm" id="b-reset" type="button">Recenter</button>
+        </div>
+        <p class="hint keys">Drag to look around · scroll or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move · <kbd>Q</kbd>/<kbd>E</kbd> up and down · click to send a ripple · double-click to recenter</p>
+        <p class="label">Walls painted as</p>
+        <div class="seg" id="seg-skin" role="radiogroup" aria-label="Wall style"></div>
+        <p class="label">Depth</p>
+        <div class="seg" id="seg-depth" role="radiogroup" aria-label="Depth source"></div>
+        <p class="hint" id="depth-hint"></p>
+        <div id="sl-imm"></div>
       </section>
 
       <section>
+        <h3>Colour</h3>
+        <div data-kind="particles">
+          <div class="seg" id="seg-color" role="radiogroup" aria-label="Colour mode"></div>
+          <div class="swatches" id="palettes" role="radiogroup" aria-label="Palette"></div>
+        </div>
+        <div id="sl-colour"></div>
+        <div data-kind="particles">
+          <p class="label">Backdrop</p>
+          <div class="swatches" id="backdrops" role="radiogroup" aria-label="Backdrop"></div>
+        </div>
+      </section>
+
+      <section data-kind="particles immersive">
         <h3>Follow the subject</h3>
         <div class="seg" id="seg-subject" role="radiogroup" aria-label="Subject detection"></div>
         <p class="hint" id="subject-hint"></p>
@@ -94,7 +124,7 @@
 
       <section>
         <h3>Camera &amp; output</h3>
-        <div id="sl-camera"></div>
+        <div id="sl-camera" data-kind="particles"></div>
         <div class="two">
           <div class="field"><label for="res">Quality</label>
             <select class="input" id="res"><option value="720">720p</option><option value="1080" selected>1080p</option><option value="1440">1440p</option></select></div>

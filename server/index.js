@@ -19,7 +19,7 @@ const CSP = [
   "font-src https://fonts.gstatic.com",
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",
-  "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com data: blob:",
+  "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://huggingface.co https://*.hf.co data: blob:",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -33,7 +33,7 @@ app.use((req, res, next) => {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'same-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), xr-spatial-tracking=(self), gyroscope=(self), accelerometer=(self)',
   });
   if (req.path.startsWith('/api/')) res.set('Cache-Control', 'no-store');
   next();

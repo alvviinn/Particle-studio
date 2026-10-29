@@ -25,8 +25,8 @@ isLocal().then((local) => {
 try {
   const eng = new ParticleEngine($('art'));
   const demo = createDemoSource(960, 540);
-  eng.setSource(demo.canvas);
-  eng.setConfig({ form: 'embers', ...FORMS.embers.defaults, density: 90, drift: 0.8 });
+  eng.setSource(demo.canvas, demo.depthCanvas);
+  eng.setConfig({ form: 'anime', ...FORMS.anime.defaults });
   const t0 = performance.now();
   (function loop() {
     requestAnimationFrame(loop);
