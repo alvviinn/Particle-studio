@@ -76,6 +76,12 @@ select.input { padding: 11px 12px; }
 .imm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .imm-actions .btn[aria-pressed="true"] { background: var(--grad); color: #fff; border-color: transparent; }
 .keys { margin-bottom: 4px; line-height: 2; }
+.ai-box { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.03); font-size: .86rem; line-height: 1.5; }
+.ai-box p, .ai-box ol { margin: 0 0 10px; }
+.ai-box ol { padding-left: 18px; }
+.ai-box li { margin-bottom: 4px; }
+.ai-box code { font-size: .8rem; background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
+.ai-tag { font: 700 .72rem var(--body); letter-spacing: .08em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hud-keys { position: absolute; right: 26px; top: 24px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; pointer-events: none; animation: fadeout 1s 6s forwards; }
 .hud-keys span { font: 600 .74rem var(--body); color: #fff; background: rgba(5,4,9,.55); padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px); }
 @keyframes fadeout { to { opacity: 0; } }
