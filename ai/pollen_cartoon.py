@@ -405,15 +405,32 @@ def app(background=None):
     st = {"src": None}
 
     # 1. video
-    mode = w.ToggleButtons(options=[("Upload", "up"), ("Attached / found", "pick"), ("Paste a link", "link")],
-                           value="up" if not find_videos() else "pick")
+    mode = w.ToggleButtons(options=[("Attached video" if not IN_COLAB else "Found videos", "pick"),
+                                    ("Paste a link", "link"), ("Upload (small files)", "up")],
+                           value="up" if IN_COLAB and not find_videos() else "pick")
     upload = w.FileUpload(accept="video/*", multiple=False, description="Choose a video")
-    up_note = w.HTML("<p class='pollen-note'>Best for clips under about 50 MB. For bigger files, attach them "
-                     "as a Kaggle dataset (Add Input) or use a link.</p>")
+    up_note = w.HTML("<p class='pollen-note'>Only for small clips (under about 10 MB). If nothing happens after "
+                     "you choose a file, it's too big for this button: use <b>Attached video</b> or "
+                     "<b>Paste a link</b> instead.</p>")
     pick = w.Dropdown(layout=wide)
-    refresh = w.Button(description="Refresh list", icon="refresh")
-    link = w.Text(placeholder="Google Drive (Anyone with the link), Dropbox or direct video link", layout=wide)
-    fetch_btn = w.Button(description="Get video", icon="download")
+    refresh = w.Button(description="Check again", icon="refresh", button_style="info")
+    found_note = w.HTML()
+    pick_help = w.HTML(
+        "<div class='pollen-note'><b>How to attach your video on Kaggle</b> (works for any size):"
+        "<ol style='margin:4px 0 0 18px;padding:0'>"
+        "<li>In the panel on the <b>right</b> of this page, find <b>Input</b> and click <b>+ Add Input</b>.</li>"
+        "<li>Click the <b>Upload</b> button (an arrow pointing up), drop your video in, type any name, click <b>Create</b>.</li>"
+        "<li>Wait until it shows under <b>Input</b> (about a minute), then click <b>Check again</b> here.</li></ol>"
+        "Already uploaded it before? <b>+ Add Input</b> → <b>Your Work</b> → click <b>⊕</b> next to it, "
+        "then <b>Check again</b>.</div>" if not IN_COLAB else
+        "<p class='pollen-note'>Videos in the Files panel on the left show up here. Click <b>Check again</b> "
+        "after adding one.</p>")
+    link = w.Text(placeholder="Paste a Google Drive, Dropbox or direct video link", layout=wide)
+    fetch_btn = w.Button(description="Get video", icon="download", button_style="info")
+    link_help = w.HTML(
+        "<div class='pollen-note'><b>Google Drive:</b> upload the video to Drive, right-click it → <b>Share</b> → "
+        "under <b>General access</b> choose <b>Anyone with the link</b> → <b>Copy link</b>, paste it above "
+        "and click <b>Get video</b>.</div>")
     source = w.VBox()
     loaded = w.HTML()
     span = w.FloatRangeSlider(min=0, max=1, value=(0, 1), step=0.5, description="Use", readout_format=".1f",
@@ -445,12 +462,21 @@ def app(background=None):
 
     def refresh_list(_=None):
         vids = find_videos()
-        # picking an option fires pick's observer, which loads the video
-        pick.options = [(f"{os.path.basename(v)}  ({os.path.dirname(v)})", v) for v in vids] or [("No videos found yet", "")]
+        st["listing"] = True  # don't load while the options are being swapped
+        pick.options = [(os.path.basename(v), v) for v in vids] or [("No video attached yet", "")]
+        st["listing"] = False
+        if vids:
+            found_note.value = (f"<p class='pollen-ok'>Found {len(vids)} video{'s' if len(vids) > 1 else ''}."
+                                f"{' Choose one above.' if len(vids) > 1 else ''}</p>")
+            pick.value = st["src"] if st["src"] in vids else vids[0]
+            use(pick.value)
+        else:
+            found_note.value = "<p class='pollen-err'>No video attached yet. Follow the steps below, then click Check again.</p>"
 
     def show_source(_=None):
-        source.children = {"up": [upload, up_note], "pick": [w.HBox([pick, refresh])],
-                           "link": [w.HBox([link, fetch_btn])]}[mode.value]
+        source.children = {"up": [upload, up_note],
+                           "pick": [w.HBox([pick, refresh]), found_note, pick_help],
+                           "link": [w.HBox([link, fetch_btn]), link_help]}[mode.value]
         if mode.value == "pick":
             refresh_list()
 
@@ -482,6 +508,7 @@ def app(background=None):
         update_estimate()
 
     def on_upload(change):
+        loaded.value = "<p class='pollen-note'>Saving the upload...</p>"
         try:
             path = save_upload(change["new"])
             if path:
@@ -551,7 +578,7 @@ def app(background=None):
 
     mode.observe(show_source, "value")
     upload.observe(on_upload, "value")
-    pick.observe(lambda c: c["new"] and use(c["new"]), "value")
+    pick.observe(lambda c: c["new"] and not st.get("listing") and c["new"] != st["src"] and use(c["new"]), "value")
     refresh.on_click(refresh_list)
     fetch_btn.on_click(on_fetch)
     span.observe(update_estimate, "value")
